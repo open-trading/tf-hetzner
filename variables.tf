@@ -3,7 +3,8 @@ variable "hcloud_token" {
 }
 
 variable "location" {
-  default = "nbg1"
+  default = "hel1"
+  #default = "nbg1"
 }
 
 variable "http_protocol" {
@@ -15,15 +16,15 @@ variable "http_port" {
 }
 
 variable "instances" {
-  default = "3"
+  default = "1"
 }
 
 variable "server_type" {
-  default = "cx11"
+  default = "cx32"
 }
 
 variable "os_type" {
-  default = "ubuntu-20.04"
+  default = "ubuntu-24.04"
 }
 
 variable "disk_size" {

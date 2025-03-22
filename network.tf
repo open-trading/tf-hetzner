@@ -3,9 +3,9 @@ resource "hcloud_network" "hc_private" {
   ip_range = var.ip_range
 }
 
-resource "hcloud_server_network" "web_network" {
+resource "hcloud_server_network" "docker_network" {
   count     = var.instances
-  server_id = hcloud_server.web[count.index].id
+  server_id = hcloud_server.docker[count.index].id
   subnet_id = hcloud_network_subnet.hc_private_subnet.id
 }
 

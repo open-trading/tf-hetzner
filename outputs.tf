@@ -1,18 +1,13 @@
-output "lb_ipv4" {
-  description = "Load balancer IP address"
-  value = hcloud_load_balancer.web_lb.ipv4
-}
-
-output "web_servers_status" {
+output "servers_status" {
   value = {
-    for server in hcloud_server.web :
+    for server in hcloud_server.docker :
     server.name => server.status
   }
 }
 
-output "web_servers_ips" {
+output "servers_ips" {
   value = {
-    for server in hcloud_server.web :
+    for server in hcloud_server.docker :
     server.name => server.ipv4_address
   }
 }

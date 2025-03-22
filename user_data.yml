@@ -1,20 +1,28 @@
 #cloud-config
 users:
-  - name: devops
+  - name: containers
     groups: users, admin
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbZjgTfgT8jRYba7EAc+VbAb0ZMmAjU9EnlDUk/EIdA+RHL59WzPprDlLPeQQsqo0J1rzxIXKmPbYBUkPBHTZ6O3sYOHkHQe5oV7C+P+UJCNdQAfReVr2eSdLJaHNyOXl7P3iyhSJOEYsqw/illeF1IURw4Pg6XvW2uSlggAneB75L4STs1tBfC+bxSRwKplH/hJE3bFauvM70+P0VrRcj5Eu3OvvKtEBaitVxpHHwiMa+j8ZFUfPBsRQ8YigUK+8Ntd9y5uRpfbDGsAj6H65U3t1yR7jONWOQY6a6LypkUwH5Hra/nqK3hm98DdvZrQWa+uyAPxXJ8IwqmCKCVCI/ yevhen@imac.local
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCxpsYqWt4xha0TSLdCyxe4B4i7twdboLEsZgzsaRdqzDiSdRyQf58b9OL2mtfsHf3BnQjBvnlOc9oFxifDvdCHT8y9Z7z6e4U5bRhq+DaympF91j7xvGS6jmI5Nd8SFyfb4tas/xd/mLDF0rb+7/IzKD1p9kmSdtd6BeoVgz3p5KLCg3jiSam8lFb6IzjHaTBoYvUZOm8mLMKn51d8WZiXymQMUlX0GUktOcMe66Sy82QmxIesjUJnAGvtvDMsLbhwAkFWP+gefZM08MPh3ANA7DUzM4lwnK8XQsOIj+uVadC4nRM383Tb44Ft9richOQMm+Ze7O6/Oi96LWyJR9sOervTmDi4E7jsuNIMtXT2n7/WWarCrheCFraLgOl1gqUXNhm+iB2nNxQWYiKobanoNej4dmT/Om+jazqR/9yqkWPYmEZqb5o7L+PhivCB//zWb3LT5LAQt0xQKjSVoUldNLvmMT7vv9ZbtqQ+qBxPIxevUMvmXPoeF6OGTeufnJh80O3wg2H4j1LJ8/tLCHjw8jhzF0qQsWoGMuOG6nVnIRIWdr9gvaP0VO0ebXyYgVy85ZgIukXEKZpjOJjbscSpQtzldQo5kLv4WOgdEVufEAddBo5wyouO5CDvNxOsvUoQg3EtgMPDdutabfnt3MB2IFEXD9Hmx4cEWRgz43vDdw== leaddev@fedora
 package_update: true
 package_upgrade: true
 packages:
-  - nginx
+  - ca-certificates
+  - curl
   - fail2ban
   - ufw
 runcmd:
-  - systemctl enable nginx
-  - ufw allow 'Nginx HTTP'
+  # Install docker
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - usermod -aG docker containers
+  - systemctl enable docker
   - printf "[sshd]\nenabled = true\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
   - systemctl enable fail2ban
   - systemctl start fail2ban
@@ -27,8 +35,6 @@ runcmd:
   - sed -ie '/^#AllowTcpForwarding/s/^.*$/AllowTcpForwarding no/' /etc/ssh/sshd_config
   - sed -ie '/^#AllowAgentForwarding/s/^.*$/AllowAgentForwarding no/' /etc/ssh/sshd_config
   - sed -ie '/^#AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh/authorized_keys/' /etc/ssh/sshd_config
-  - sed -i '$a AllowUsers devops' /etc/ssh/sshd_config
+  - sed -i '$a AllowUsers containers' /etc/ssh/sshd_config
   - systemctl restart ssh
-  - rm /var/www/html/*
-  - echo "Hello! I am Nginx @ $(curl -s ipinfo.io/ip)! This record added at $(date -u)." >>/var/www/html/index.html
       
