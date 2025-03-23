@@ -5,6 +5,7 @@ resource "hcloud_server" "docker" {
   server_type = var.server_type
   location    = var.location
   ssh_keys    = [hcloud_ssh_key.default.id]
+  firewall_ids = [hcloud_firewall.myfirewall.id]
   labels = {
     type = "docker"
   }
